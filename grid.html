@@ -40,6 +40,8 @@
     <div id="32" class="grid-item" onclick="move(this.id.toString())">32</div>
   <div id="33" class="grid-item" onclick="move(this.id.toString())">33</div> 
 </div>
+    <p id="one"></p>
+    <p id="two"></p>
 <script>
     
     var playerOnePos = "01";
@@ -219,7 +221,7 @@
             else {
                 this.health += _amount;
             }
-        }
+        };
         this.dealDamage = function(_amount, _source) {
             if (this.health > 2 && _source == GREEN_POISON) {
                 this.effect = -1;
@@ -237,6 +239,9 @@
             else {
                 this.health -= _amount;
             }
+        };
+        this.display = function() {
+            return this.health + " | " + this.gold + " | " + this.weapons[0].damage + " | " + this.char + " | " + this.class;
         }
     }
     
@@ -252,6 +257,9 @@
         this.image = getImage(WEAPON, _type)
         this.poisoned = getPoison(WEAPON, _type);
         this.class = WEAPON;
+        this.display = function() {
+            return this.damage + " | " + this.type + " | " + this.class;
+        }
     }
     
     function Chest(_contains, _type) {
@@ -260,6 +268,9 @@
         this.image = getImage(CHEST, _type);
         this.opened = false;
         this.class = CHEST;
+        this.display = function() {
+            return this.type + " | " + this.class;
+        }
     }
     
     function Currency(_amount, _type) {
@@ -269,6 +280,9 @@
         this.hits = getHits(_type);
         this.image = getImage(CURRENCY, _type);
         this.class = CURRENCY;
+        this.display = function() {
+            return this.amount + " | " + this.type + " | " + " | " + this.hits + " | " + this.class;
+        }
     }
     
     function Vial(_amount, _type) {
@@ -277,6 +291,9 @@
         this.image = getImage(VIAL, _type);
         this.effect = getEffect(_type);
         this.class = VIAL;
+        this.display = function() {
+            return this.amount + " | " + this.type + " | " + this.class;
+        }
     }
     
     function Enemy(_health, _type) {
@@ -286,6 +303,9 @@
         //this.item = getItem(_type);
         this.poisoned = getPoison(ENEMY, _type);
         this.class = ENEMY;
+        this.display = function() {
+            return this.health + " | " + this.type + " | " + this.class;
+        }
     }
     
     function Explosive(_damage, _type, _count) {
@@ -296,6 +316,9 @@
         //this.range = getRange(EXPLOSIVE, _type);
         this.poisoned = getPoison(EXPLOSIVE, _type);
         this.class = EXPLOSIVE;
+        this.display = function() {
+            return this.damage + " | " + this.type + " | " + this.count + " | " + this.class;
+        }
     }
     
     function Trap(_damage, _type) {
@@ -307,6 +330,9 @@
         this.active = true;
         this.direction = randomNum(0,5);
         this.class = TRAP;
+        this.display = function() {
+            return this.damage + " | " + this.type + " | " + this.class;
+        }
     }
     
     function Empty() {
@@ -354,7 +380,7 @@
     function generateExplosive() {
         var explosiveType = randomNum(0, SPAWNABLE_EXPLOSIVES);
         var damage = randomNum(1, 15);
-        return new Explosive(damage, explosiveType);
+        return new Explosive(damage, 3, explosiveType);
     }
     
     function generateChest() {
@@ -638,6 +664,7 @@
         for (var y = 0; y < 4; y++) {
             for (var x = 0; x < 4; x++) {
                 document.getElementById(y.toString() + x.toString()).style.backgroundColor = cards[y][x].image;
+                document.getElementById(y.toString() + x.toString()).innerHTML = cards[y][x].display();
             }
         }
     }
