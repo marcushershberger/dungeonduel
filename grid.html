@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  background-color: #2196F3;
+  padding: 10px;
+  width: 1000px;
+}
+.grid-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  padding: 80px;
+  font-size: 30px;
+  text-align: center;
+}
+</style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+</head>
+<body onload="generateBoard()">
+
+<div class="grid-container">
+  <div id="00" class="grid-item" onclick="move(this.id.toString())">00</div>
+  <div id="01" class="grid-item" onclick="move(this.id.toString())">01</div>
+  <div id="02" class="grid-item" onclick="move(this.id.toString())">02</div>  
+  <div id="03" class="grid-item" onclick="move(this.id.toString())">03</div>
+  <div id="10" class="grid-item" onclick="move(this.id.toString())">10</div>
+  <div id="11" class="grid-item" onclick="move(this.id.toString())">11</div>  
+  <div id="12" class="grid-item" onclick="move(this.id.toString())">12</div>
+  <div id="13" class="grid-item" onclick="move(this.id.toString())">13</div>
+  <div id="20" class="grid-item" onclick="move(this.id.toString())">20</div>
+    <div id="21" class="grid-item" onclick="move(this.id.toString())">21</div>
+  <div id="22" class="grid-item" onclick="move(this.id.toString())">22</div>  
+  <div id="23" class="grid-item" onclick="move(this.id.toString())">23</div>
+  <div id="30" class="grid-item" onclick="move(this.id.toString())">30</div>
+  <div id="31" class="grid-item" onclick="move(this.id.toString())">31</div> 
+    <div id="32" class="grid-item" onclick="move(this.id.toString())">32</div>
+  <div id="33" class="grid-item" onclick="move(this.id.toString())">33</div> 
+</div>
+<script>
+    
+    var playerOnePos = "01";
+    var playerTwoPos = "32";
+    var playerOneTurn = true;
+    var roundMoves = 2;
+    var player1 = 0;
+    var player2 = 0;
+    var cards = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+    
+    // Game Modes
+    const DEATHMATCH = 0;
+    const GOLD_RUSH = 1;
+    const KILLS = 2;
+    
+    // Directions
+    const NORTH = 0;
+    const EAST = 1;
+    const SOUTH = 2;
+    const WEST = 3;
+    
+    // Types of Cards
+    const TRAP = 0;
+    const WEAPON = 1;
+    const CURRENCY = 2;
+    const ENEMY = 3;
+    const EXPLOSIVE = 4;
+    const CHEST = 5;
+    const VIAL = 6;
+    const CHARACTER = 7;
+    
+    // For Card Generation
+    const SPAWNABLE_CARDS = 7;
+    
+    // Types of Player Characters
+    const KNIGHT = 0;
+    const MAGE = 1;
+    const VIKING = 2;
+    const ROGUE = 3;
+    const VAMPIRE = 5;
+    const MRCACTUS = 6;
+    const THEIF = 7;
+    const BLACKSMITH = 8;
+    const ALCHEMIST = 9;
+    const GRENADIER = 10;
+    
+    // Types of Perks
+    const HEALTH = 0;
+    const DAMAGE = 1;
+    const WEAPON_BUFF = 2;
+    const FAST_RECHARGE = 3;
+    const POTION_EXPLOSION = 4;
+    const GIVE_SWORD = 5;
+    const GIVE_WAND = 6;
+    const TELEPORT = 7;
+    const GIVE_GOLD = 8;
+    const FIRE_SHIELD = 9;
+    const EXPLOSION_SHIELD = 10;
+    
+    // Types of Weapons
+    const SWORD = 0;
+    const GOLD_SWORD = 1;
+    const WHITE_SWORD = 2;
+    const VAMPIRE_SWORD = 3;
+    const POISON_WAND = 4;
+    const FIRE_WAND = 5;
+    const ICE_WAND = 6;
+    const MACE = 8;
+    const POISON_SWORD = 9;
+    const SHEILD = 10;
+    const NOTHING = 11;
+    
+    // For Weapon Generation
+    const SPAWNABLE_WEAPONS = 9;
+    
+    // Types of ENEMIES
+    const ZOMBIE = 0;
+    const SKELETON = 1;
+    const ICE_FIEND = 2;
+    const FIRE_FIEND = 3;
+    const JELLYFISH = 4;
+    const FLY = 5;
+    const BOAR = 6;
+    const TREE = 7;
+    const STUMP = 8;
+    const BAT = 9;
+    const BAT_WITH_POTION = 10;
+    const ACID_MONSTER = 11;
+    const CTHULHU = 12;
+    const CRAB = 13;
+    const BAT_WITH_BOMB = 14;
+    const CACTUS = 15;
+    const MUSHROOM = 16;
+    const HATLESS_MUSHROOM = 17;
+    const MONSTER = 18;
+    const POISONED_ZOMBIE = 19;
+    
+    // For Enemy Generation
+    const SPAWNABLE_ENEMIES = 20;
+    
+    // Types of Abilities
+    const FIRE_ABSORB = 0;
+    const GREEN_POISON_IMMUNITY = 1;
+    const PURPLE_POISON_IMMUNITY = 2;
+    const EXPLOSION_IMMUNITY = 3;
+    const DOUBLE_TOP_DAMAGE = 4;
+    const MULTIPLE_WEAPONS = 5;
+    const ATTACK_HEAL = 6;
+    const SPIKE_IMMUNITY = 7;
+    const REMOTE_CHEST = 8;
+    const REMOTE_MINE = 9;
+    const MULTIPLE_DAMAGE = 10;
+    
+    // Types of Traps
+    const ONE_SPIKE = 0;
+    const TWO_SPIKES = 1;
+    const THREE_SPIKES = 2;
+    const FLOOR_SPIKES = 3;
+    const ONE_FIRE = 4;
+    const TWO_FIRES = 5;
+    const THREE_FIRES = 6;
+    
+    // For Trap Generation
+    const SPAWNABLE_TRAPS = 7;
+    
+    // Types of Currency
+    const GOLD = 0;
+    const SAPPHIRE = 1;
+    const RUBY = 2;
+    const GOLD_ORE = 3;
+    const RUBY_ORE = 4;
+    
+    // For Currency Generation
+    const SPAWNABLE_CURRENCIES = 5;
+    
+    // Types of Vials
+    const RED_HEALTH = 0;
+    const BLUE_HEALTH = 1;
+    const GREEN_POISON = 2;
+    const PURPLE_POISON = 3;
+    
+    // For Vial Generation
+    const SPAWNABLE_VIALS = 4;
+    
+    // Types of Explosives
+    const BOMB = 0;
+    const POISON_BOMB = 1;
+    const TNT = 2;
+    const GOLDEN_BOMB = 3;
+    
+    // For Explosives Generation
+    const SPAWNABLE_EXPLOSIVES = 4;
+    
+    // Types of Chests
+    const GOOD_CHEST = 0;
+    const BAD_CHEST = 1;
+    
+    // For Chest Generation
+    const SPAWNABLE_CHESTS = 2;
+    
+    function Player(_char, _pos/*, _perks*/) {
+        this.health = getHealth(_char);
+        this.maxHealth = getHealth(_char);
+        this.char = _char;
+        this.image = getImage(CHARACTER, _char);
+        this.weapons = _char == BLACKSMITH ? [new Weapon(15, SWORD), new WEAPON(0, NOTHING),new WEAPON(0, NOTHING)] : [new Weapon(15,SWORD)];
+        this.abilites = getAbilities(_char);
+        //this.perks = [perks[0],perks[1],perks[2]];
+        this.effect = 0;
+        this.gold = 0;
+        this.class = CHARACTER;
+        this.pos = _pos;
+        this.addHealth = function(_amount) {
+            if (_amount + this.health > this.maxHealth) {
+                this.health = this.maxHealth;
+            }
+            else {
+                this.health += _amount;
+            }
+        }
+        this.dealDamage = function(_amount, _source) {
+            if (this.health > 2 && _source == GREEN_POISON) {
+                this.effect = -1;
+            }
+            if (this.health - _amount < 1) {
+                if (_source == PURPLE_POISON || _type == GREEN_POISON) {
+                    this.health = 1;
+                    this.effect = 0;
+                }
+                else if (_source = ENEMY) {
+                    this.health = 0;
+                    gameOver();
+                }
+            }
+            else {
+                this.health -= _amount;
+            }
+        }
+    }
+    
+    function Perk(_type) {
+        this.type = _type;
+        this.maxCount = getCount(_type);
+        this.count = getCount(_type);
+    }
+    
+    function Weapon(_damage, _type) {
+        this.damage = _damage;
+        this.type = _type;
+        this.image = getImage(WEAPON, _type)
+        this.poisoned = getPoison(WEAPON, _type);
+        this.class = WEAPON;
+    }
+    
+    function Chest(_contains, _type) {
+        this.contains = _contains;
+        this.type = _type;
+        this.image = getImage(CHEST, _type);
+        this.opened = false;
+        this.class = CHEST;
+    }
+    
+    function Currency(_amount, _type) {
+        this.amount = _amount;
+        this.type = _type;
+        this.perkIncrement = getPerkIncrement(_type);
+        this.hits = getHits(_type);
+        this.image = getImage(CURRENCY, _type);
+        this.class = CURRENCY;
+    }
+    
+    function Vial(_amount, _type) {
+        this.amount = _amount;
+        this.type = _type;
+        this.image = getImage(VIAL, _type);
+        this.effect = getEffect(_type);
+        this.class = VIAL;
+    }
+    
+    function Enemy(_health, _type) {
+        this.health = _health;
+        this.type = _type;
+        this.image = getImage(ENEMY, _type);
+        //this.item = getItem(_type);
+        this.poisoned = getPoison(ENEMY, _type);
+        this.class = ENEMY;
+    }
+    
+    function Explosive(_damage, _type, _count) {
+        this.damage = _damage;
+        this.type = _type;
+        this.image = getImage(EXPLOSIVE, _type);
+        this.count = _count;
+        //this.range = getRange(EXPLOSIVE, _type);
+        this.poisoned = getPoison(EXPLOSIVE, _type);
+        this.class = EXPLOSIVE;
+    }
+    
+    function Trap(_damage, _type) {
+        this.damage = _damage;
+        this.type = _type;
+        this.image = getImage(TRAP, _type);
+        this.poisoned = getPoison(TRAP, _type);
+        //this.range = getRange(TRAP, _type);
+        this.active = true;
+        this.direction = randomNum(0,5);
+        this.class = TRAP;
+    }
+    
+    function Empty() {
+        this.image = "black";
+    }
+    
+    function randomNum(_min, _max) {
+        return Math.floor(Math.random() * (_max - _min)) + _min;
+    }
+    
+    function generateWeapon() {
+        var weaponType = randomNum(0, SPAWNABLE_WEAPONS); 
+        var damage = randomNum(3, 14);
+        var poison = weaponType == POISON_WAND || weaponType == POISON_SWORD;
+        return new Weapon(damage, weaponType, poison);
+    }
+    
+    function generateEnemy() {
+        var enemyType = randomNum(0, SPAWNABLE_ENEMIES);
+        var health = randomNum(2, 23);
+        return new Enemy(health, enemyType);
+    }
+    
+    function generateTrap() {
+        var trapType = randomNum(0, SPAWNABLE_TRAPS);
+        var damage = randomNum(1, 15);
+        return new Trap(damage, trapType);
+    }
+    
+    function generateCurrency() {
+        var currencyType = randomNum(0, SPAWNABLE_CURRENCIES);
+        var max = currencyType == RUBY_ORE || currencyType == GOLD_ORE ? 8 : 15
+        var amount = randomNum(1, max);
+        return new Currency(amount, currencyType);
+    }
+    
+    function generateVial(type = 0) {
+        var vialType = randomNum(0, SPAWNABLE_VIALS);
+        if (type == 1) vialType = randomNum(0, 2);
+        if (type == 2) vialType = randomNum(2,4);
+        var amount = vialType != PURPLE_POISON ? randomNum(1, 13) : 1;
+        return new Vial(amount, vialType);
+    }
+    
+    function generateExplosive() {
+        var explosiveType = randomNum(0, SPAWNABLE_EXPLOSIVES);
+        var damage = randomNum(1, 15);
+        return new Explosive(damage, explosiveType);
+    }
+    
+    function generateChest() {
+        var chestType = randomNum(0, SPAWNABLE_CHESTS);
+        var contents = getChestContents(chestType);
+        return new Chest(contents, chestType);
+    }
+    
+    function getHits(_type) {
+        if (_type == RUBY_ORE || _type == GOLD_ORE) return 4;
+        return 1;
+    }
+    
+    function getChestContents(_type) {
+        var rand = randomNum(0,2);
+        if (rand == 0) return generateGoodContents();
+        return generateBadContents();
+    }
+    
+    function getPoison(_class, _type) {
+        return (_class == WEAPON && (_type == POISON_SWORD || _type == POISON_WAND)) || (_class == EXPLOSIVE && _type == POISON_BOMB) || (_class == ENEMY && _type == POISONED_ZOMBIE);
+    }
+    
+    function getEffect(_type) {
+        if (_type == RED_HEALTH || _type == BLUE_HEALTH) return 1;
+        return -1;
+    }
+    
+    function generateGoodContents() {
+        var rand = randomNum(0,3);
+        if (rand < 2) return generateCurrency();
+        return generateVial(1);
+    }
+    
+    function generateBadContents() {
+        var rand = randomNum(0,3);
+        if (rand < 1) return generateExplosive();
+        return generateVial(2);
+    }
+    
+    function getPerkIncrement(_type) {
+        switch (_type) {
+            case GOLD:
+                return 1;
+                break;
+            case SAPPHIRE:
+                return 2;
+                break;
+            case RUBY:
+                return 3;
+                break;
+        }
+    }
+    
+    function getImage(_class, _type) {
+        switch (_class) {
+            case CHARACTER:
+                return "teal";
+                break;
+            case ENEMY:
+                return "brown";
+                break;
+            case WEAPON:
+                return "white";
+                break;
+            case CURRENCY:
+                switch (_type) {
+                    case GOLD:
+                        return "gold";
+                        break;
+                    case SAPPHIRE:
+                        return "blue";
+                        break;
+                    default:
+                        return "red";
+                        break;
+                }
+                break;
+            case TRAP:
+                switch (_type) {
+                    case FLOOR_SPIKES:
+                        return "lightgray";
+                        break;
+                    case ONE_SPIKE:
+                        return "lightgray";
+                        break;
+                    case TWO_SPIKES:
+                        return "lightgray";
+                        break;
+                    case THREE_SPIKES:
+                        return "lightgray";
+                        break;
+                    default:
+                        return "orange";
+                        break;
+                }
+                break;
+            case EXPLOSIVE:
+                return "khaki";
+                break;
+            case VIAL:
+                switch (_type) {
+                    case BLUE_HEALTH:
+                        return "lightblue";
+                        break;
+                    case RED_HEALTH:
+                        return "pink";
+                        break;
+                    case GREEN_POISON:
+                        return "green";
+                        break;
+                    case PURPLE_POISON:
+                        return "purple";
+                        break;
+                }
+                break;
+            case CHEST:
+                switch (_type) {
+                    case GOOD_CHEST:
+                        return "slateblue";
+                        break;
+                    case BAD_CHEST:
+                        return "darkslategray";
+                        break;
+                }
+                break;
+        }
+    }
+    
+    function getAbilities(_char) {
+        switch (_char) {
+            case MAGE:
+                return [FIRE_ABSORB];
+                break;
+            case VIKING:
+                return [EXPLOSION_IMMUNITY, MULTIPLE_DAMAGE];
+                break;
+            case ROGUE:
+                return [GREEN_POISON_IMMUNITY, DOUBLE_TOP_DAMAGE];
+                break;
+            case VAMPIRE:
+                return [ATTACK_HEAL];
+                break;
+            case MRCACTUS:
+                return [SPIKE_IMMUNITY];
+                break;
+            case THEIF:
+                return [REMOTE_CHEST, REMOTE_MINE];
+                break;
+            case BLACKSMITH:
+                return [MULTIPLE_WEAPONS];
+                break;
+            case ALCHEMIST:
+                return [GREEN_POISON_IMMUNITY, PURPLE_POISON_IMMUNITY];
+                break;
+            case GRENADIER:
+                return [EXPLOSION_IMMUNITY];
+                break;
+        }
+    }
+    
+    function getHealth(_char) {
+        switch (_char) {
+            case KNIGHT:
+                return 53;
+                break;
+            case ROGUE:
+                return 45;
+                break;
+            case BLACKSMITH:
+                return 48;
+                break;
+            case GRENADIER:
+                return 51;
+                break;
+            default:
+                return 50;
+                break;
+        }
+    }
+    
+    function getCount(_perk) {
+        switch (_perk) {
+            case HEALTH:
+                return 8;
+                break;
+            case DAMAGE:
+                return 10;
+                break;
+            case WEAPON_BUFF:
+                return 11;
+                break;
+            case POTION_EXPLOSION:
+                return 12;
+                break;
+            case SWORD:
+                return 9;
+                break;
+            case WAND:
+                return 9;
+                break;
+            case TELEPORT:
+                return 16;
+                break;
+            case GOLD:
+                return 15;
+                break;
+            case FIRE_SHIELD:
+                return -1;
+                break;
+            case EXPLOSION_SHIELD:
+                return -1;
+                break;
+        }
+    }
+    
+    function generateItem() {
+        var rand = randomNum(0, SPAWNABLE_CARDS);
+        switch (rand) {
+            case ENEMY:
+                return generateEnemy();
+                break;
+            case WEAPON:
+                return generateWeapon();
+                break;
+            case CURRENCY:
+                return generateCurrency();
+                break;
+            case VIAL:
+                return generateVial();
+                break;
+            case EXPLOSIVE:
+                return generateExplosive();
+                break;
+            case CHEST:
+                return generateChest();
+                break;
+            case TRAP:
+                return generateTrap();
+                break;
+        }
+    }
+    
+    function generateBoard() {
+        for (var y = 0; y < 4; y++) {
+            for (var x = 0; x < 4; x++) {
+                if ((y == 0 && x == 3) || (y == 3 && x == 2)) {
+                    var char = new Player(KNIGHT, y.toString() + x.toString());
+                    document.getElementById(char.pos).style.backgroundColor = char.image;
+                    cards[y][x] = char;
+                    if (y == 0) player1 = char;
+                    else player2 = char;
+                }
+                else {
+                    var item = generateItem();
+                    document.getElementById(y.toString() + x.toString()).style.backgroundColor = item.image;
+                    console.log(y,x,item);
+                    cards[y][x] = item;
+                }
+            }
+        }
+    }
+    
+    function move(newPos) {
+        var currPos = playerOneTurn ? player1.pos : player2.pos;
+        if (!adjacent(currPos, newPos)) {
+            console.log("invalid move");
+            return;
+        }
+        interact(newPos);
+        roundMoves--;
+        if (roundMoves < 1) {
+            playerOneTurn = !playerOneTurn;
+            roundMoves = 2;
+        }
+        redrawCards();
+        console.log("valid move");
+    }
+    
+    function redrawCards() {
+        for (var y = 0; y < 4; y++) {
+            for (var x = 0; x < 4; x++) {
+                document.getElementById(y.toString() + x.toString()).style.backgroundColor = cards[y][x].image;
+            }
+        }
+    }
+    
+    function interact(_pos) {
+        var y = parseInt(_pos[0]);
+        var x = parseInt(_pos[1]);
+        var player = playerOneTurn ? player1 : player2;
+        var currPos = player.pos;
+        var currPosInt = [parseInt(currPos[0]), parseInt(currPos[1])];
+        var card = cards[y][x];
+        var class_ = card.class;
+        var dir = getDirection(currPos, _pos);
+        switch (class_) {
+            case WEAPON:
+                var emptySlotFound = false;
+                for (var w = 0; w < player.weapons.length; w++) {
+                    if (player.weapons[w].damage == 0 && !emptySlotFound) {
+                        player.weapons[w] = card;
+                        emptySlotFound = true;
+                    }
+                }
+                cards[y][x] = player;
+                player.pos = _pos;
+                slide(currPosInt[0],currPosInt[1], dir);
+                //cards[currPosInt[0]][currPosInt[1]] = generateItem();
+                break;
+            case CURRENCY:
+                player.gold += card.amount;
+                cards[y][x] = player;
+                player.pos = _pos;
+                slide(currPosInt[0],currPosInt[1], dir);
+                break;
+            case CHEST:
+                card.opened = true;
+                cards[y][x] = card.contains;
+                break;
+            case VIAL:
+                var amount = card.class == PURPLE_POISON ? (0.25 * player.health) : card.amount;
+                var source = card.class == PURPLE_POISON ? PURPLE_POISON : GREEN_POISON;
+                if (card.effect == 1) player.addHealth(amount);
+                else player.dealDamage(amount, source);
+                cards[y][x] = player;
+                player.pos = _pos;
+                slide(currPosInt[0],currPosInt[1], dir);
+                break;
+                
+        }
+        if (playerOneTurn) {
+            player1 = player;
+        }
+        else {
+            player2 = player;
+        }
+    }
+    
+    function getDirection(_start, _end) {
+        if (parseInt(_start[0]) > parseInt(_end[0])) {
+            return SOUTH;
+        }
+        if (parseInt(_start[0]) < parseInt(_end[0])) {
+            return NORTH;
+        }
+        if (parseInt(_start[1]) > parseInt(_end[1])) {
+            return WEST;
+        }
+        if (parseInt(_start[1]) > parseInt(_end[1])) {
+            return EAST;
+        }
+    }
+    
+    function slide(moveY, moveX, dir) {
+        if (moveY < 1) {
+            var xcoord = moveX;
+            while (xcoord > 0) {
+                cards[moveY][xcoord] = cards[moveY][xcoord-1];
+                xcoord--;
+            }
+            cards[moveY][xcoord] = generateItem();
+        }
+    }
+    
+    function adjacent(_posA, _posB) {
+        var posA = [parseInt(_posA[0]), parseInt(_posA[1])];
+        var posB = [parseInt(_posB[0]), parseInt(_posB[1])];
+        if ((posA[0] == posB[0] + 1 || posA[0] == posB[0] - 1) && posA[1] == posB[1]) return true;
+        if ((posA[1] == posB[1] + 1 || posA[1] == posB[1] - 1) && posA[0] == posB[0]) return true;
+        return false;
+    }
+    
+</script>
+</body>
+</html>
