@@ -52,6 +52,10 @@
     var player2 = 0;
     var cards = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
     
+    // Boundaries
+    const YBOUND = 3;
+    const XBOUND = 3;
+    
     // Game Modes
     const DEATHMATCH = 0;
     const GOLD_RUSH = 1;
@@ -163,9 +167,11 @@
     const ONE_FIRE = 4;
     const TWO_FIRES = 5;
     const THREE_FIRES = 6;
+    const TWO_SPIKES_ACR = 7;
+    const TWO_FIRES_ACR = 8;
     
     // For Trap Generation
-    const SPAWNABLE_TRAPS = 7;
+    const SPAWNABLE_TRAPS = 9;
     
     // Types of Currency
     const GOLD = 0;
@@ -627,7 +633,7 @@
     function generateBoard() {
         for (var y = 0; y < 4; y++) {
             for (var x = 0; x < 4; x++) {
-                if ((y == 0 && x == 3) || (y == 3 && x == 2)) {
+                if ((y == 0 && x == 1) || (y == 3 && x == 2)) {
                     var char = new Player(KNIGHT, y.toString() + x.toString());
                     document.getElementById(char.pos).style.backgroundColor = char.image;
                     cards[y][x] = char;
@@ -637,7 +643,6 @@
                 else {
                     var item = generateItem();
                     document.getElementById(y.toString() + x.toString()).style.backgroundColor = item.image;
-                    console.log(y,x,item);
                     cards[y][x] = item;
                 }
             }
@@ -647,7 +652,6 @@
     function move(newPos) {
         var currPos = playerOneTurn ? player1.pos : player2.pos;
         if (!adjacent(currPos, newPos)) {
-            console.log("invalid move");
             return;
         }
         interact(newPos);
@@ -657,7 +661,6 @@
             roundMoves = 2;
         }
         redrawCards();
-        console.log("valid move");
     }
     
     function redrawCards() {
@@ -722,16 +725,16 @@
     }
     
     function getDirection(_start, _end) {
-        if (parseInt(_start[0]) > parseInt(_end[0])) {
+        if (parseInt(_start[0]) < parseInt(_end[0])) {
             return SOUTH;
         }
-        if (parseInt(_start[0]) < parseInt(_end[0])) {
+        if (parseInt(_start[0]) > parseInt(_end[0])) {
             return NORTH;
         }
         if (parseInt(_start[1]) > parseInt(_end[1])) {
             return WEST;
         }
-        if (parseInt(_start[1]) > parseInt(_end[1])) {
+        if (parseInt(_start[1]) < parseInt(_end[1])) {
             return EAST;
         }
     }
@@ -739,11 +742,116 @@
     function slide(moveY, moveX, dir) {
         if (moveY < 1) {
             var xcoord = moveX;
-            while (xcoord > 0) {
-                cards[moveY][xcoord] = cards[moveY][xcoord-1];
-                xcoord--;
+            if (!(xcoord < 1 || xcoord > XBOUND - 1)) {
+                if (dir == WEST) {
+                    while (xcoord < XBOUND) {
+                        cards[moveY][xcoord] = cards[moveY][xcoord+1];
+                        xcoord++;
+                    }
+                }
+                else {
+                    while (xcoord > 0) {
+                        cards[moveY][xcoord] = cards[moveY][xcoord-1];
+                        xcoord--;
+                    }
+                }
+            }
+            else {
+                while (xcoord > 0) {
+                    cards[moveY][xcoord] = cards[moveY][xcoord-1];
+                    xcoord--;
+                }
             }
             cards[moveY][xcoord] = generateItem();
+        }
+        else if (moveY > YBOUND - 1) {
+            var xcoord = moveX;
+            if (!(xcoord < 1 || xcoord > XBOUND - 1)) {
+                if (dir == EAST) {
+                    while (xcoord > 0) {
+                        cards[moveY][xcoord] = cards[moveY][xcoord-1];
+                        xcoord--;
+                    }
+                }
+                else {
+                    while (xcoord < XBOUND) {
+                        cards[moveY][xcoord] = cards[moveY][xcoord+1];
+                        xcoord++;
+                    }
+                }
+            }
+            else {
+                while (xcoord < XBOUND) {
+                    cards[moveY][xcoord] = cards[moveY][xcoord+1];
+                    xcoord++;
+                }
+            }
+            cards[moveY][xcoord] = generateItem();
+        }
+        else if (moveX < 1) {
+            var ycoord = moveY;
+            if (dir != EAST) {
+                if (dir == NORTH) {
+                    while (ycoord < YBOUND) {
+                        cards[ycoord][moveX] = cards[ycoord+1][moveX];
+                        ycoord++;
+                    }
+                }
+                else {
+                    while (ycoord > 0) {
+                        cards[ycoord][moveX] = cards[ycoord-1][moveX];
+                        ycoord--;
+                    }
+                }
+            }
+            cards[ycoord][moveX] = generateItem();
+        }
+        else if (moveX > XBOUND - 1) {
+            var ycoord = moveY;
+            if (dir != WEST) {
+                if (dir == NORTH) {
+                    while (ycoord < YBOUND) {
+                        cards[ycoord][moveX] = cards[ycoord+1][moveX];
+                        ycoord++;
+                    }
+                }
+                else {
+                    while (ycoord > 0) {
+                        cards[ycoord][moveX] = cards[ycoord-1][moveX];
+                        ycoord--;
+                    }
+                }
+            }
+            cards[ycoord][moveX] = generateItem();
+        }
+        else {
+            var xcoord = moveX;
+            var ycoord = moveY;
+            if (dir == NORTH) {
+                while (ycoord < YBOUND) {
+                    cards[ycoord][moveX] = cards[ycoord+1][moveX];
+                    ycoord++;
+                }
+            }
+            else if (dir == SOUTH) {
+                while (ycoord > 0) {
+                    cards[ycoord][moveX] = cards[ycoord-1][moveX];
+                    ycoord--;
+                }
+            }
+            else if (dir == WEST) {
+                while (xcoord < XBOUND) {
+                    cards[moveY][xcoord] = cards[moveY][xcoord+1];
+                    xcoord++;
+                }
+            }
+            else if (dir == EAST) {
+                while (xcoord > 0) {
+                    cards[moveY][xcoord] = cards[moveY][xcoord-1];
+                    xcoord--;
+                }
+            }
+            cards[ycoord][xcoord] = generateItem();
         }
     }
     
