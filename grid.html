@@ -10,7 +10,7 @@
   width: 1000px;
 }
 .grid-item {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(50,50,0, 0.8);
   border: 1px solid rgba(0, 0, 0, 0.8);
   font-size: 30px;
   text-align: center;
@@ -19,33 +19,38 @@
 img {
 width: 50%;
 }
+    .trap {
+        transition: transform 0.5s;
+    }
 </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 </head>
 <body onload="generateBoard()">
-
 <div class="grid-container">
-  <div id="00" class="grid-item" onclick="move(this.id.toString())">00</div>
-  <div id="01" class="grid-item" onclick="move(this.id.toString())">01</div>
-  <div id="02" class="grid-item" onclick="move(this.id.toString())">02</div>  
-  <div id="03" class="grid-item" onclick="move(this.id.toString())">03</div>
-  <div id="10" class="grid-item" onclick="move(this.id.toString())">10</div>
-  <div id="11" class="grid-item" onclick="move(this.id.toString())">11</div>  
-  <div id="12" class="grid-item" onclick="move(this.id.toString())">12</div>
-  <div id="13" class="grid-item" onclick="move(this.id.toString())">13</div>
-  <div id="20" class="grid-item" onclick="move(this.id.toString())">20</div>
-    <div id="21" class="grid-item" onclick="move(this.id.toString())">21</div>
-  <div id="22" class="grid-item" onclick="move(this.id.toString())">22</div>  
-  <div id="23" class="grid-item" onclick="move(this.id.toString())">23</div>
-  <div id="30" class="grid-item" onclick="move(this.id.toString())">30</div>
-  <div id="31" class="grid-item" onclick="move(this.id.toString())">31</div> 
-    <div id="32" class="grid-item" onclick="move(this.id.toString())">32</div>
-  <div id="33" class="grid-item" onclick="move(this.id.toString())">33</div> 
+  <div id="00" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="01" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="02" class="grid-item" onclick="move(this.id.toString())"></div>  
+  <div id="03" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="10" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="11" class="grid-item" onclick="move(this.id.toString())"></div>  
+  <div id="12" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="13" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="20" class="grid-item" onclick="move(this.id.toString())"></div>
+    <div id="21" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="22" class="grid-item" onclick="move(this.id.toString())"></div>  
+  <div id="23" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="30" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="31" class="grid-item" onclick="move(this.id.toString())"></div> 
+    <div id="32" class="grid-item" onclick="move(this.id.toString())"></div>
+  <div id="33" class="grid-item" onclick="move(this.id.toString())"></div> 
 </div>
+    <p id="status"></p>
     <p id="one"></p>
     <p id="two"></p>
 <script>
+    
+    // NEXT: DAMAGE FROM PLAYER TO PLAYER, POISONED ENTITIES
     
     var playerOnePos = "01";
     var playerTwoPos = "32";
@@ -213,7 +218,8 @@ width: 50%;
     // For Chest Generation
     const SPAWNABLE_CHESTS = 2;
     
-    function Player(_char, _pos/*, _perks*/) {
+    function Player(_char, _pos, _name/*, _perks*/) {
+        this.name = _name;
         this.health = getHealth(_char);
         this.maxHealth = getHealth(_char);
         this.char = _char;
@@ -233,7 +239,11 @@ width: 50%;
                 this.health += _amount;
             }
         };
-        this.dealDamage = function(_amount, _source) {
+        this.dealDamage = function(_amount, _source = -1) {
+            if (_amount < 0) {
+                this.addHealth(-1 * _amount);
+                return;
+            }
             if (this.health > 2 && _source == GREEN_POISON) {
                 this.effect = -1;
             }
@@ -252,7 +262,9 @@ width: 50%;
             }
         };
         this.display = function() {
-            return this.health + " | " + this.gold + " | " + this.weapons[0].damage + " | " + this.char + " | " + this.class;
+            var weaponDamage = 0;
+            if (this.weapons[0] != null) weaponDamage = this.weapons[0].damage;
+            return this.health + " | " + this.gold + " | " + weaponDamage;
         }
     }
     
@@ -269,7 +281,15 @@ width: 50%;
         this.poisoned = getPoison(WEAPON, _type);
         this.class = WEAPON;
         this.display = function() {
-            return this.damage + " | " + this.type + " | " + this.class;
+            return this.damage;
+        }
+        this.dealDamage = function(_amount) {
+            if (_amount > this.damage) {
+                this.damage = 0;
+            }
+            else {
+                this.damage -= _amount;
+            }   
         }
     }
     
@@ -280,7 +300,10 @@ width: 50%;
         this.opened = false;
         this.class = CHEST;
         this.display = function() {
-            return this.type + " | " + this.class;
+            return "";
+        }
+        this.dealDamage = function(_amount) {
+            
         }
     }
     
@@ -292,7 +315,21 @@ width: 50%;
         this.image = getImage(CURRENCY, _type);
         this.class = CURRENCY;
         this.display = function() {
-            return this.amount + " | " + this.type + " | " + " | " + this.hits + " | " + this.class;
+            return this.amount + " | " + this.hits;
+        }
+        this.nextOre = function() {
+            if (this.hits != 0) {
+                if (this.type == GOLD_ORE) this.image.src = "Gold Ore " + this.hits + png;
+                if (this.type == RUBY_ORE) this.image.src = "Ruby Ore " + this.hits + png;
+            }
+        }
+        this.dealDamage = function(_amount) {
+            if (_amount >= this.amount) {
+                this.amount = 1;
+            }
+            else {
+                this.amount -= _amount;
+            }   
         }
     }
     
@@ -301,9 +338,18 @@ width: 50%;
         this.type = _type;
         this.image = getImage(VIAL, _type);
         this.effect = getEffect(_type);
+        this.gold = _amount > 1 ? Math.floor(_amount / 2) : 1;
         this.class = VIAL;
         this.display = function() {
-            return this.amount + " | " + this.type + " | " + this.class;
+            return this.amount;
+        }
+        this.dealDamage = function(_amount) {
+            if (_amount > this.amount) {
+                this.amount = 0;
+            }
+            else {
+                this.amount -= _amount;
+            }   
         }
     }
     
@@ -312,10 +358,19 @@ width: 50%;
         this.type = _type;
         this.image = getImage(ENEMY, _type);
         //this.item = getItem(_type);
-        this.poisoned = getPoison(ENEMY, _type);
+        this.effect = getPoison(ENEMY, _type) ? -1 : 0;
+        this.gold = _health > 1 ? Math.floor(_health / 2) : 1;
         this.class = ENEMY;
         this.display = function() {
-            return this.health + " | " + this.type + " | " + this.class;
+            return this.health;
+        }
+        this.dealDamage = function(_amount) {
+            if (_amount > this.health) {
+                this.health = 0;
+            }
+            else {
+                this.health -= _amount;
+            }   
         }
     }
     
@@ -328,19 +383,65 @@ width: 50%;
         this.poisoned = getPoison(EXPLOSIVE, _type);
         this.class = EXPLOSIVE;
         this.display = function() {
-            return this.damage + " | " + this.type + " | " + this.count + " | " + this.class;
+            return this.damage + " | " + this.count;
         }
         this.explode = function(pos) {
             var x = parseInt(pos[1]);
             var y = parseInt(pos[0]);
             if (this.type == TNT) {
+                for (var i = 0; i < XBOUND; i++) {
+                    if (i != x) cards[y][i].dealDamage(this.damage);
+                }
             }
+            else if (this.type == BOMB || this.type == POISON_BOMB) {
+                if (x > 0) {
+                    cards[y][x-1].dealDamage(this.damage);
+                    if (this.poisoned && (cards[y][x-1].class == CHARACTER || cards[y][x-1].class == ENEMY)) cards[y][x-1].effect = -1;
+                }
+                if (x < XBOUND) {
+                    cards[y][x+1].dealDamage(this.damage);
+                    if (this.poisoned && (cards[y][x+1].class == CHARACTER || cards[y][x+1].class == ENEMY)) cards[y][x+1].effect = -1;
+                }
+                if (y > 0) {
+                    cards[y-1][x].dealDamage(this.damage);
+                    if (this.poisoned && (cards[y-1][x].class == CHARACTER || cards[y-1][x].class == ENEMY)) cards[y-1][x].effect = -1;
+                }
+                if (y < YBOUND) {
+                    cards[y+1][x].dealDamage(this.damage);
+                    if (this.poisoned && (cards[y+1][x].class == CHARACTER || cards[y+1][x].class == ENEMY)) cards[y+1][x].effect = -1;
+                }
+            }
+            else {
+                if (x > 0) {
+                    cards[y][x-1].dealDamage(-1 * this.damage);
+                }
+                if (x < XBOUND) {
+                    cards[y][x+1].dealDamage(-1 * this.damage);
+                }
+                if (y > 0) {
+                    cards[y-1][x].dealDamage(-1 * this.damage);
+                }
+                if (y < YBOUND) {
+                    cards[y+1][x].dealDamage(-1 * this.damage);
+                }
+            }
+            cards[y][x] = new Currency(1, GOLD);
         }
-        this.countDown = function() {
+        this.countDown = function(pos) {
             this.count--;
             if (this.count == 0) {
-                this.explode();
+                this.explode(pos);
             }
+            else {
+                if (this.type == BOMB) this.image.src = "Bomb " + this.count + png;
+                if (this.type == POISON_BOMB) this.image.src = "Poison Bomb " + this.count + png;
+                if (this.type == TNT) this.image.src = "TNT " + this.count + png;
+                //if (this.type == GOLDEN_BOMB) this.image.src = "Gold Bomb " + this.count + png;
+            }
+        }
+        this.dealDamage = function(_amount) {
+            if (_amount > this.damage) this.damage = 1;
+            else this.damage -= _amount;
         }
     }
     
@@ -351,15 +452,77 @@ width: 50%;
         this.poisoned = getPoison(TRAP, _type);
         //this.range = getRange(TRAP, _type);
         this.active = true;
-        this.direction = randomNum(0,5);
+        this.direction = randomNum(0,4);
         this.class = TRAP;
+        this.turns = this.direction * 90;
+        if (_type != FLOOR_SPIKES) {
+            this.image.style.transform = "rotate(" + this.turns + "deg)";
+            this.image.className = "trap";
+        }
         this.display = function() {
-            return this.damage + " | " + this.type + " | " + this.class;
+            return this.damage;
+        }
+        this.dealDamage = function(_amount) {
+            if (_amount > this.damage) {
+                this.damage = 0;
+            }
+            else {
+                this.damage -= _amount;
+            }   
+        }
+        this.rotate = function() {
+            if (this.type != FLOOR_SPIKES) {
+                this.direction++;
+                if (this.direction > WEST) {
+                    this.direction = NORTH;
+                }
+                this.turns += 90;
+                this.image.style.transform = "rotate(" + this.turns + "deg)";
+            }
+            else {
+                this.active = !this.active;
+            }
+        }
+        this.getDirections = function() {
+            var directions = [];
+            if (this.type == ONE_SPIKE || this.type == ONE_FIRE) directions = [this.direction];
+            else if (this.type == TWO_SPIKES_ACR || this.type == TWO_FIRES_ACR) {
+                if (this.direction == NORTH || this.direction == SOUTH) directions = [NORTH, SOUTH];
+                if (this.direction == WEST || this.direction == EAST) directions = [EAST, WEST];
+            }
+            else if (this.type == TWO_SPIKES || this.type == TWO_FIRES) {
+                if (this.direction == NORTH) directions = [NORTH, EAST];
+                else if (this.direction == EAST) directions = [EAST, SOUTH];
+                else if (this.direction == SOUTH) directions = [WEST, SOUTH];
+                else if (this.direction == WEST) directions = [WEST, NORTH];
+            }
+            else if (this.type == THREE_SPIKES || this.type == THREE_FIRES) {
+                if (this.direction == NORTH) directions = [NORTH, EAST, SOUTH];
+                else if (this.direction == EAST) directions = [EAST, SOUTH, WEST];
+                else if (this.direction == SOUTH) directions = [WEST, SOUTH, NORTH];
+                else if (this.direction == WEST) directions = [WEST, NORTH, EAST];
+            }
+            return directions;
+        }
+        this.fire = function(pos) {
+            var y = parseInt(pos[0]);
+            var x = parseInt(pos[1]);
+            var directions = this.getDirections();
+            for (var d = 0; d < directions.length; d++) {
+                if (directions[d] == NORTH && y > 0) cards[y-1][x].dealDamage(this.damage);
+                else if (directions[d] == SOUTH && y < YBOUND) cards[y+1][x].dealDamage(this.damage);
+                else if (directions[d] == EAST && x < XBOUND) cards[y][x+1].dealDamage(this.damage);
+                else if (directions[d] == WEST && x > 0) cards[y][x-1].dealDamage(this.damage);
+            }
+        }
+        this.trapped = function(_dir) {
+            var directions = this.getDirections();
+            return directions.includes(reverseDir(_dir));
         }
     }
     
     function Empty() {
-        this.image = "black";
+        this.image = document.createElement("img");
     }
     
     function randomNum(_min, _max) {
@@ -400,10 +563,10 @@ width: 50%;
         return new Vial(amount, vialType);
     }
     
-    function generateExplosive() {
-        var explosiveType = randomNum(0, SPAWNABLE_EXPLOSIVES);
-        var damage = randomNum(1, 15);
-        return new Explosive(damage, 3, explosiveType);
+    function generateExplosive(onlyBad = 0) {
+        var explosiveType = randomNum(0, SPAWNABLE_EXPLOSIVES - onlyBad);
+        var damage = randomNum(1, 12);
+        return new Explosive(damage, explosiveType, 3);
     }
     
     function generateChest() {
@@ -418,8 +581,7 @@ width: 50%;
     }
     
     function getChestContents(_type) {
-        var rand = randomNum(0,2);
-        if (rand == 0) return generateGoodContents();
+        if (_type == GOOD_CHEST) return generateGoodContents();
         return generateBadContents();
     }
     
@@ -434,13 +596,14 @@ width: 50%;
     
     function generateGoodContents() {
         var rand = randomNum(0,3);
-        if (rand < 2) return generateCurrency();
+        if (rand == 2) return generateWeapon();
+        if (rand == 1) return generateCurrency();
         return generateVial(1);
     }
     
     function generateBadContents() {
         var rand = randomNum(0,3);
-        if (rand < 1) return generateExplosive();
+        if (rand > 1) return generateExplosive(1);
         return generateVial(2);
     }
     
@@ -459,6 +622,19 @@ width: 50%;
     }
     
     function getImage(_class, _type) {
+        var img = document.createElement("img");
+        img.src = getImageSrc(_class, _type);
+        return img;
+    }
+    
+    function reverseDir(_dir) {
+        if (_dir == NORTH) return SOUTH;
+        else if (_dir == SOUTH) return NORTH;
+        else if (_dir == EAST) return WEST;
+        return EAST;
+    }
+    
+    function getImageSrc(_class, _type) {
         switch (_class) {
             case CHARACTER:
                 return "Knight" + png;
@@ -486,10 +662,10 @@ width: 50%;
                         return "Sapphire" + png;
                         break;
                     case RUBY_ORE:
-                        return "Ruby Ore 3" + png;
+                        return "Ruby Ore Full" + png;
                         break;
                     case GOLD_ORE:
-                        return "Gold Ore 3" + png;
+                        return "Gold Ore Full" + png;
                         break;
                     case RUBY:
                         return "Ruby" + png;
@@ -499,13 +675,13 @@ width: 50%;
             case TRAP:
                 switch (_type) {
                     case FLOOR_SPIKES:
-                        return "Shield" + png;
+                        return "Floor Spikes Active.png";
                         break;
                     case ONE_SPIKE:
                         return "Spike Trap Single" + png;
                         break;
                     case TWO_SPIKES:
-                        return "Spike Trap Double Across" + png;
+                        return "Spike Trap Double Adj" + png;
                         break;
                     case THREE_SPIKES:
                         return "Spike Trap Triple" + png;
@@ -528,9 +704,9 @@ width: 50%;
                 }
                 break;
             case EXPLOSIVE:
-                if (_type == BOMB) return "Bomb" + png;
-                if (_type == TNT) return "TNT" + png;
-                if (_type == POISON_BOMB) return "Poison Bomb" + png;
+                if (_type == BOMB) return "Bomb 3" + png;
+                if (_type == TNT) return "TNT 3" + png;
+                if (_type == POISON_BOMB) return "Poison Bomb 3" + png;
                 if (_type == GOLDEN_BOMB) return "Gold Bomb" + png;
                 break;
             case VIAL:
@@ -679,16 +855,24 @@ width: 50%;
     function generateBoard() {
         for (var y = 0; y < 4; y++) {
             for (var x = 0; x < 4; x++) {
-                if ((y == 0 && x == 3) || (y == 3 && x == 2)) {
-                    var char = new Player(KNIGHT, y.toString() + x.toString());
-                    document.getElementById(char.pos).innerHTML = "<img src='" + char.image + "'>";
+                if ((y == 0 && x == 1) || (y == 3 && x == 2)) {
+                    var player = y == 0 ? "player1" : "player2";
+                    var char = new Player(KNIGHT, y.toString() + x.toString(), player);
+                    document.getElementById(char.pos).appendChild(char.image);
+                    var p = document.createElement("p");
+                    p.innerHTML = char.display();
+                    document.getElementById(y.toString() + x.toString()).appendChild(char.weapons[0].image);
+                    document.getElementById(y.toString() + x.toString()).appendChild(p);
                     cards[y][x] = char;
                     if (y == 0) player1 = char;
                     else player2 = char;
                 }
                 else {
                     var item = generateItem();
-                    document.getElementById(y.toString() + x.toString()).innerHTML = "<img src='" + item.image + "'>";
+                    document.getElementById(y.toString() + x.toString()).appendChild(item.image);
+                    var p = document.createElement("p");
+                    p.innerHTML = item.display();
+                    document.getElementById(y.toString() + x.toString()).appendChild(p);
                     cards[y][x] = item;
                 }
             }
@@ -706,14 +890,30 @@ width: 50%;
             playerOneTurn = !playerOneTurn;
             roundMoves = 2;
         }
+        document.getElementById("status").innerHTML = (playerOneTurn ? "Player 1" : "Player 2") + " | " + roundMoves;
+        endMove();
         redrawCards();
     }
     
     function redrawCards() {
         for (var y = 0; y < 4; y++) {
             for (var x = 0; x < 4; x++) {
-                var imgTag = "<img src='" + cards[y][x].image + "'>";
-                document.getElementById(y.toString() + x.toString()).innerHTML = imgTag + cards[y][x].display();
+                document.getElementById(y.toString() + x.toString()).innerHTML = "";
+                var imgTag = cards[y][x].image;
+                var p = document.createElement("p");
+                p.innerHTML = cards[y][x].display();
+                document.getElementById(y.toString() + x.toString()).appendChild(imgTag);
+                if (cards[y][x].class == CHARACTER) {
+                    if (cards[y][x].weapons[0] != null) {
+                        document.getElementById(y.toString() + x.toString()).appendChild(cards[y][x].weapons[0].image);
+                    }
+                    else {
+                        var empty = document.createElement("img");
+                        empty.src = "Empty.png";
+                        document.getElementById(y.toString() + x.toString()).appendChild(empty);
+                    }
+                }
+                document.getElementById(y.toString() + x.toString()).appendChild(p);
             }
         }
     }
@@ -731,36 +931,90 @@ width: 50%;
             case WEAPON:
                 var emptySlotFound = false;
                 for (var w = 0; w < player.weapons.length; w++) {
-                    if (player.weapons[w].damage == 0 && !emptySlotFound) {
+                    if ((player.weapons[w] == null || player.weapons[w].damage < card.damage) && !emptySlotFound) {
                         player.weapons[w] = card;
                         emptySlotFound = true;
                     }
                 }
+                if (!emptySlotFound) {
+                    var addGold = Math.floor(card.damage / 2);
+                    if (addGold < 1) addGold = 1;
+                    player.gold += addGold;
+                }
                 cards[y][x] = player;
                 player.pos = _pos;
                 slide(currPosInt[0],currPosInt[1], dir);
-                //cards[currPosInt[0]][currPosInt[1]] = generateItem();
                 break;
             case CURRENCY:
                 player.gold += card.amount;
-                cards[y][x] = player;
-                player.pos = _pos;
-                slide(currPosInt[0],currPosInt[1], dir);
+                card.hits--;
+                if (card.type == GOLD_ORE || card.type == RUBY_ORE) card.nextOre();
+                if (card.hits < 1) {
+                    cards[y][x] = player;
+                    slide(currPosInt[0],currPosInt[1], dir);
+                }
                 break;
             case CHEST:
                 card.opened = true;
                 cards[y][x] = card.contains;
                 break;
             case VIAL:
-                var amount = card.class == PURPLE_POISON ? (0.25 * player.health) : card.amount;
-                var source = card.class == PURPLE_POISON ? PURPLE_POISON : GREEN_POISON;
+                var amount = card.type == PURPLE_POISON ? (Math.floor(0.25 * player.health)) : card.amount;
+                var source = card.type == PURPLE_POISON ? PURPLE_POISON : GREEN_POISON;
                 if (card.effect == 1) player.addHealth(amount);
                 else player.dealDamage(amount, source);
+                cards[y][x] = player;
+                slide(currPosInt[0],currPosInt[1], dir);
+                break;
+            case ENEMY:
+                var enemyHealth = card.health;
+                var weapon = player.weapons[0];
+                if (weapon != null && weapon.damage > 0) {
+                    if (weapon.damage > enemyHealth) {
+                        player.weapons[0].damage -= card.health;
+                        card.dealDamage(card.health);
+                        cards[y][x] = new Currency(card.gold, GOLD);
+                    }
+                    else {
+                        card.dealDamage(weapon.damage);
+                        player.weapons[0].damage -= enemyHealth;
+                    }
+                }
+                else {
+                    if (player.health > enemyHealth) {
+                        player.gold += card.gold;
+                        player.dealDamage(enemyHealth)
+                        cards[y][x] = player;
+                        slide(currPosInt[0],currPosInt[1], dir);
+                    }
+                    else {
+                        gameOver()
+                    }
+                }
+                break;
+            case EXPLOSIVE:
+                var temp = cards[y][x];
+                cards[y][x] = cards[currPosInt[0]][currPosInt[1]];
+                cards[currPosInt[0]][currPosInt[1]] = temp;
+                break;
+            case TRAP:
+                if (card.type == ONE_SPIKE || card.type == TWO_SPIKES || card.type == THREE_SPIKES || card.type == TWO_SPIKES_ACR) {
+                    if (card.trapped(dir)) {
+                        player.dealDamage(card.damage);
+                    }
+                }
+                else if (card.type == ONE_FIRE || card.type == TWO_FIRES || card.type == THREE_FIRES || card.type == TWO_FIRES_ACR) {
+                    card.fire([y,x]);
+                }
+                else if (card.type == FLOOR_SPIKES) {
+                    if (card.active) player.dealDamage(card.damage);
+                }
                 cards[y][x] = player;
                 player.pos = _pos;
                 slide(currPosInt[0],currPosInt[1], dir);
                 break;
-                
+            case CHARACTER:
+                break;
         }
         if (playerOneTurn) {
             player1 = player;
@@ -804,9 +1058,9 @@ width: 50%;
                 }
             }
             else {
-                while (ycoord > 0) {
-                    cards[ycoord][moveX] = cards[ycoord-1][moveX];
-                    ycoord--;
+                while (xcoord > 0) {
+                    cards[ycoord][xcoord] = cards[ycoord][xcoord-1];
+                    xcoord--;
                 }
             }
             cards[ycoord][xcoord] = generateItem();
@@ -828,9 +1082,17 @@ width: 50%;
                 }
             }
             else {
-                while (xcoord < XBOUND) {
-                    cards[moveY][xcoord] = cards[moveY][xcoord+1];
-                    xcoord++;
+                if (dir == EAST) {
+                    while (xcoord > 0) {
+                        cards[moveY][xcoord] = cards[moveY][xcoord-1];
+                        xcoord--;
+                    }
+                }
+                else {
+                    while (xcoord < XBOUND) {
+                        cards[moveY][xcoord] = cards[moveY][xcoord+1];
+                        xcoord++;
+                    }   
                 }
             }
             cards[moveY][xcoord] = generateItem();
@@ -911,11 +1173,55 @@ width: 50%;
     }
     
     function endMove() {
-        for (var x = 0; x < XBOUND; x++) {
-            for (var y = 0; y < YBOUND; y++) {
+        for (var x = 0; x < XBOUND + 1; x++) {
+            for (var y = 0; y < YBOUND + 1; y++) {
                 var item = cards[y][x];
-                var type = item.class;
-                
+                var _class = item.class;
+                if (_class == EXPLOSIVE) {
+                    cards[y][x].countDown(y.toString() + x.toString());
+                }
+                else if (_class == CHARACTER) {
+                    cards[y][x].pos = y.toString() + x.toString();
+                    if (item.weapons[0] != null && item.weapons[0].damage < 1) {
+                        cards[y][x].weapons[0] = null;
+                        if (cards[y][x].type = BLACKSMITH) {
+                            var openSlot = 0;
+                            for (var w = 1; w < item.weapons.length; w++) {
+                                if (item.weapons[w].damage > 0) {
+                                    cards[y][x].weapons[openSlot] = item.weapons[w];
+                                    openSlot++;
+                                    cards[y][x].weapons[w] = null;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (_class == WEAPON) {
+                    if (item.damage == 0) {
+                        cards[y][x] = new Currency(item.gold, GOLD);
+                    }
+                }
+                else if (_class == VIAL) {
+                    if (item.amount == 0) {
+                        cards[y][x] = new Currency(1, GOLD);
+                    }
+                }
+                else if (_class == TRAP) {
+                    cards[y][x].rotate();
+                    if (item.type == FLOOR_SPIKES) {
+                        var img = document.createElement("img");
+                        img.src = cards[y][x].active ? "Floor Spikes Active.png" : "Floor Spikes Inactive.png";
+                        cards[y][x].image = img;
+                    }
+                    if (item.damage == 0) {
+                        cards[y][x] = new Currency(1, GOLD);
+                    }
+                }
+                else if (_class == ENEMY) {
+                    if (item.health < 1) {
+                        cards[y][x] = new Currency(item.gold, GOLD);
+                    }
+                }
             }
         }
     }
