@@ -12,9 +12,12 @@
 .grid-item {
   background-color: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(0, 0, 0, 0.8);
-  padding: 80px;
   font-size: 30px;
   text-align: center;
+}
+
+img {
+width: 50%;
 }
 </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -51,6 +54,8 @@
     var player1 = 0;
     var player2 = 0;
     var cards = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+    
+    var png = "-1.png.png";
     
     // Boundaries
     const YBOUND = 3;
@@ -114,7 +119,7 @@
     const FIRE_WAND = 5;
     const ICE_WAND = 6;
     const MACE = 8;
-    const POISON_SWORD = 9;
+    const POISON_SWORD = 7;
     const SHEILD = 10;
     const NOTHING = 11;
     
@@ -325,6 +330,18 @@
         this.display = function() {
             return this.damage + " | " + this.type + " | " + this.count + " | " + this.class;
         }
+        this.explode = function(pos) {
+            var x = parseInt(pos[1]);
+            var y = parseInt(pos[0]);
+            if (this.type == TNT) {
+            }
+        }
+        this.countDown = function() {
+            this.count--;
+            if (this.count == 0) {
+                this.explode();
+            }
+        }
     }
     
     function Trap(_damage, _type) {
@@ -444,72 +461,101 @@
     function getImage(_class, _type) {
         switch (_class) {
             case CHARACTER:
-                return "teal";
+                return "Knight" + png;
                 break;
             case ENEMY:
-                return "brown";
+                return "Monster" + png;
                 break;
             case WEAPON:
-                return "white";
+                if (_type == SWORD) return "Sword" + png;
+                if (_type == GOLD_SWORD) return "Gold Sword" + png;
+                if (_type == WHITE_SWORD) return "White Sword" + png;
+                if (_type == POISON_SWORD) return "Poison Sword" + png;
+                if (_type == VAMPIRE_SWORD) return "Vampire Sword" + png;
+                if (_type == POISON_WAND) return "Poison Wand" + png;
+                if (_type == FIRE_WAND) return "Fire Wand" + png;
+                if (_type == ICE_WAND) return "Ice Wand" + png;
+                if (_type == MACE) return "Mace" + png;
                 break;
             case CURRENCY:
                 switch (_type) {
                     case GOLD:
-                        return "gold";
+                        return "Gold" + png;;
                         break;
                     case SAPPHIRE:
-                        return "blue";
+                        return "Sapphire" + png;
                         break;
-                    default:
-                        return "red";
+                    case RUBY_ORE:
+                        return "Ruby Ore 3" + png;
+                        break;
+                    case GOLD_ORE:
+                        return "Gold Ore 3" + png;
+                        break;
+                    case RUBY:
+                        return "Ruby" + png;
                         break;
                 }
                 break;
             case TRAP:
                 switch (_type) {
                     case FLOOR_SPIKES:
-                        return "lightgray";
+                        return "Shield" + png;
                         break;
                     case ONE_SPIKE:
-                        return "lightgray";
+                        return "Spike Trap Single" + png;
                         break;
                     case TWO_SPIKES:
-                        return "lightgray";
+                        return "Spike Trap Double Across" + png;
                         break;
                     case THREE_SPIKES:
-                        return "lightgray";
+                        return "Spike Trap Triple" + png;
                         break;
-                    default:
-                        return "orange";
+                    case TWO_SPIKES_ACR:
+                        return "Spike Trap Double Across" + png;
+                        break;
+                    case TWO_FIRES_ACR:
+                        return "Fire Trap Double Across" + png;
+                        break;
+                    case ONE_FIRE:
+                        return "Fire Trap Single" + png;
+                        break;
+                    case THREE_FIRES:
+                        return "Fire Trap Triple" + png;
+                        break;
+                    case TWO_FIRES:
+                        return "Fire Trap Double Adj" + png;
                         break;
                 }
                 break;
             case EXPLOSIVE:
-                return "khaki";
+                if (_type == BOMB) return "Bomb" + png;
+                if (_type == TNT) return "TNT" + png;
+                if (_type == POISON_BOMB) return "Poison Bomb" + png;
+                if (_type == GOLDEN_BOMB) return "Gold Bomb" + png;
                 break;
             case VIAL:
                 switch (_type) {
                     case BLUE_HEALTH:
-                        return "lightblue";
+                        return "Blue Vial" + png;
                         break;
                     case RED_HEALTH:
-                        return "pink";
+                        return "Red Vial" + png;
                         break;
                     case GREEN_POISON:
-                        return "green";
+                        return "Green Vial" + png;
                         break;
                     case PURPLE_POISON:
-                        return "purple";
+                        return "Purple Vial" + png;
                         break;
                 }
                 break;
             case CHEST:
                 switch (_type) {
                     case GOOD_CHEST:
-                        return "slateblue";
+                        return "Good Chest" + png;
                         break;
                     case BAD_CHEST:
-                        return "darkslategray";
+                        return "Bad Chest" + png;
                         break;
                 }
                 break;
@@ -633,16 +679,16 @@
     function generateBoard() {
         for (var y = 0; y < 4; y++) {
             for (var x = 0; x < 4; x++) {
-                if ((y == 0 && x == 1) || (y == 3 && x == 2)) {
+                if ((y == 0 && x == 3) || (y == 3 && x == 2)) {
                     var char = new Player(KNIGHT, y.toString() + x.toString());
-                    document.getElementById(char.pos).style.backgroundColor = char.image;
+                    document.getElementById(char.pos).innerHTML = "<img src='" + char.image + "'>";
                     cards[y][x] = char;
                     if (y == 0) player1 = char;
                     else player2 = char;
                 }
                 else {
                     var item = generateItem();
-                    document.getElementById(y.toString() + x.toString()).style.backgroundColor = item.image;
+                    document.getElementById(y.toString() + x.toString()).innerHTML = "<img src='" + item.image + "'>";
                     cards[y][x] = item;
                 }
             }
@@ -666,8 +712,8 @@
     function redrawCards() {
         for (var y = 0; y < 4; y++) {
             for (var x = 0; x < 4; x++) {
-                document.getElementById(y.toString() + x.toString()).style.backgroundColor = cards[y][x].image;
-                document.getElementById(y.toString() + x.toString()).innerHTML = cards[y][x].display();
+                var imgTag = "<img src='" + cards[y][x].image + "'>";
+                document.getElementById(y.toString() + x.toString()).innerHTML = imgTag + cards[y][x].display();
             }
         }
     }
@@ -742,7 +788,8 @@
     function slide(moveY, moveX, dir) {
         if (moveY < 1) {
             var xcoord = moveX;
-            if (!(xcoord < 1 || xcoord > XBOUND - 1)) {
+            var ycoord = moveY;
+            if (dir != SOUTH) {
                 if (dir == WEST) {
                     while (xcoord < XBOUND) {
                         cards[moveY][xcoord] = cards[moveY][xcoord+1];
@@ -757,12 +804,12 @@
                 }
             }
             else {
-                while (xcoord > 0) {
-                    cards[moveY][xcoord] = cards[moveY][xcoord-1];
-                    xcoord--;
+                while (ycoord > 0) {
+                    cards[ycoord][moveX] = cards[ycoord-1][moveX];
+                    ycoord--;
                 }
             }
-            cards[moveY][xcoord] = generateItem();
+            cards[ycoord][xcoord] = generateItem();
         }
         else if (moveY > YBOUND - 1) {
             var xcoord = moveX;
@@ -861,6 +908,16 @@
         if ((posA[0] == posB[0] + 1 || posA[0] == posB[0] - 1) && posA[1] == posB[1]) return true;
         if ((posA[1] == posB[1] + 1 || posA[1] == posB[1] - 1) && posA[0] == posB[0]) return true;
         return false;
+    }
+    
+    function endMove() {
+        for (var x = 0; x < XBOUND; x++) {
+            for (var y = 0; y < YBOUND; y++) {
+                var item = cards[y][x];
+                var type = item.class;
+                
+            }
+        }
     }
     
 </script>
